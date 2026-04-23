@@ -1,0 +1,17 @@
+name: axiom-official/axiom-conv-ai
+version: 0.1.0
+language: python
+description: Conversational AI with durable session memory. Validates ax.agent.memory.
+nodes:
+    - name: MemoryChat
+      description: Load session history and semantic context, call LLM, persist new turns and facts.
+      input: ConvRequest
+      output: ConvResponse
+      required_secrets:
+        - ANTHROPIC_API_KEY
+    - name: EndSession
+      description: Summarize session history into a semantic memory, then close the session.
+      input: ConvRequest
+      output: ConvResponse
+      required_secrets:
+        - ANTHROPIC_API_KEY

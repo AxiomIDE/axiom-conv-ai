@@ -1,0 +1,32 @@
+// This file defines the data contracts (messages) for your Axiom package.
+// Every node's --input and --output refers to a message defined here.
+//
+// Run `axiom create message <Name>` to scaffold a new message below.
+// Run `axiom generate` to compile these definitions into language bindings in gen/.
+//
+// DOCUMENTATION
+//   Comments written directly above a message or field declaration are extracted
+//   automatically at publish time and shown in the Axiom registry as documentation.
+//   Write your descriptions there — no separate doc files needed.
+//
+//   Leading comment  (no blank line before the declaration) → registry description ✓
+//   Detached comment (blank line before the declaration)    → ignored by registry  ✗
+//
+// This file is yours to edit. Axiom only appends new message blocks — it never
+// overwrites or removes content you have written.
+
+syntax = "proto3";
+
+package axiom_conv_ai;
+
+// A single conversational turn sent to the MemoryChat or EndSession node.
+message ConvRequest {
+  string session_id = 1;
+  string user_message = 2;
+}
+
+// The response from MemoryChat (the assistant reply) or EndSession (a session summary).
+message ConvResponse {
+  string session_id = 1;
+  string response = 2;
+}
