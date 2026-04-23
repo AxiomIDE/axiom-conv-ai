@@ -1,9 +1,8 @@
 """Unit tests for EndSession.
 
-The node is async and depends on ax.agent.memory and the Anthropic API.
+The node depends on ax.agent.memory and the Anthropic API.
 Both are replaced with fakes so no real I/O happens during tests.
 """
-import asyncio
 from unittest.mock import MagicMock, patch
 
 from gen.messages_pb2 import ConvRequest, ConvResponse
@@ -112,7 +111,7 @@ def test_end_session_closes_session():
 
     with patch("nodes.end_session.anthropic.Anthropic") as mock_cls:
         mock_cls.return_value.messages.create.return_value = _mock_response("A short chat.")
-        asyncio.run(end_session(ax, req))
+        end_session(ax, req)
 
     assert session.ended, "session.end() must be called"
 
@@ -126,7 +125,7 @@ def test_end_session_writes_global_semantic_memory():
 
     with patch("nodes.end_session.anthropic.Anthropic") as mock_cls:
         mock_cls.return_value.messages.create.return_value = _mock_response("User asked about Axiom.")
-        asyncio.run(end_session(ax, req))
+        end_session(ax, req)
 
     assert len(ax.agent.memory.global_written) >= 1
     written = ax.agent.memory.global_written[0]
@@ -143,7 +142,7 @@ def test_end_session_response_contains_summary():
 
     with patch("nodes.end_session.anthropic.Anthropic") as mock_cls:
         mock_cls.return_value.messages.create.return_value = _mock_response("A brief greeting exchange.")
-        result = asyncio.run(end_session(ax, req))
+        result = end_session(ax, req)
 
     assert isinstance(result, ConvResponse)
     assert result.session_id == "s3"
@@ -157,7 +156,7 @@ def test_end_session_no_turns_closes_without_llm():
     req = ConvRequest(session_id="s4", user_message="")
 
     with patch("nodes.end_session.anthropic.Anthropic") as mock_cls:
-        result = asyncio.run(end_session(ax, req))
+        result = end_session(ax, req)
         mock_cls.return_value.messages.create.assert_not_called()
 
     assert session.ended
@@ -171,7 +170,7 @@ def test_end_session_missing_secret_raises():
     req = ConvRequest(session_id="s5", user_message="")
 
     try:
-        asyncio.run(end_session(ax, req))
+        end_session(ax, req)
         assert False, "Expected RuntimeError"
     except RuntimeError as exc:
         assert "ANTHROPIC_API_KEY" in str(exc)
