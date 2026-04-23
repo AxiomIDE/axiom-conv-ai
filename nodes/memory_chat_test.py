@@ -1,8 +1,9 @@
 """Unit tests for MemoryChat.
 
-The node depends on ax.agent.memory and the Anthropic API.
+The node is async and depends on ax.agent.memory and the Anthropic API.
 Both are replaced with fakes so no real I/O happens during tests.
 """
+import asyncio
 from unittest.mock import MagicMock, patch
 
 from gen.messages_pb2 import ConvRequest, ConvResponse
@@ -111,7 +112,7 @@ def test_memory_chat_returns_llm_response():
 
     with patch("nodes.memory_chat.anthropic.Anthropic") as mock_cls:
         mock_cls.return_value.messages.create.return_value = _mock_anthropic_response("Hi there!")
-        result = memory_chat(ax, req)
+        result = asyncio.run(memory_chat(ax, req))
 
     assert isinstance(result, ConvResponse)
     assert result.session_id == "s1"
@@ -126,7 +127,7 @@ def test_memory_chat_appends_both_turns_to_history():
 
     with patch("nodes.memory_chat.anthropic.Anthropic") as mock_cls:
         mock_cls.return_value.messages.create.return_value = _mock_anthropic_response("Axiom is a platform.")
-        memory_chat(ax, req)
+        asyncio.run(memory_chat(ax, req))
 
     roles = [t["role"] for t in session.history.appended]
     contents = [t["content"] for t in session.history.appended]
@@ -144,7 +145,7 @@ def test_memory_chat_writes_semantic_memory():
 
     with patch("nodes.memory_chat.anthropic.Anthropic") as mock_cls:
         mock_cls.return_value.messages.create.return_value = _mock_anthropic_response("Noted.")
-        memory_chat(ax, req)
+        asyncio.run(memory_chat(ax, req))
 
     assert len(session.written) >= 1
     assert session.written[0]["importance"] > 0
@@ -167,7 +168,7 @@ def test_memory_chat_incorporates_prior_history():
 
     with patch("nodes.memory_chat.anthropic.Anthropic") as mock_cls:
         mock_cls.return_value.messages.create.side_effect = _capture
-        memory_chat(ax, req)
+        asyncio.run(memory_chat(ax, req))
 
     contents = [m["content"] for m in captured_messages]
     assert any("Alice" in c for c in contents), "Prior turn content must reach the LLM"
@@ -180,7 +181,7 @@ def test_memory_chat_missing_secret_raises():
     req = ConvRequest(session_id="s5", user_message="Hi")
 
     try:
-        memory_chat(ax, req)
+        asyncio.run(memory_chat(ax, req))
         assert False, "Expected RuntimeError"
     except RuntimeError as exc:
         assert "ANTHROPIC_API_KEY" in str(exc)
